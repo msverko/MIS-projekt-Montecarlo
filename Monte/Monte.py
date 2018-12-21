@@ -2,7 +2,7 @@ import random
 import matplotlib.pyplot as plt
 import math
 import csv
-
+import numpy as np
 
 # proizvod = [[1,2,3,4,5,6] , ["celicni lim obicni", "celicni auto-lim", "celicni brodski lim", "aluminij obicni", "dur-aluminij", "bakreni lim"], [10,7,5,4,6,8]] # id, naziv, brzina(m/sec)
 
@@ -10,13 +10,15 @@ import csv
 
 def Izbornik():
     izbor = 0
-    while (izbor != 1 or izbor != 2 or izbot != 9):
+    while (izbor != 1 or izbor != 2 or izbor != 3 or izbor != 9):
         izbor = int(input("\n Odaberi opciju: \n 1 = Generiranje podataka na temelju unosa parametara \n 2 = Analiza generiranih podataka iz .scv \n 9 = izlaz \n "),10)
         if izbor == 1:
             GenerateData()
+        if izbor == 3:
+            #PlotSigmnond()
+            PlotNormalDistribution()
         if izbor == 9:
             quit()
-
 
 
 def GenerateData():
@@ -42,28 +44,50 @@ def GenerateData():
             print("Vrijeme navigacije = " + str(navigTime))
             prevPageLevel = pageLevel # postavljanje inicijalne razine za slijedeci loop.
         elif pageLevel > 0:
-            t1 = 2 * prevPageLevel # povratak na nultu razinu traje 2sec po svakoj razini iznad nule
+            t1 = 1.5 * prevPageLevel # povratak na nultu razinu traje 2sec po svakoj razini iznad nule
             t2 = 0 
             for tepmPageLevel in range(1, pageLevel+1): # za prelazak na svaku narednu razinu, iznova se racuna koeficijent, i vrijeme reakcije
                 numElements = random.randint(6,maxNumElements) # random broj elemenata na stranici (minimalno 6)
                 print("Broj elemenata na stranici = " + str(numElements))
-                if numElements in range(0,10):
-                    coeficient = 1
-                elif numElements in range(10,20):
-                    coeficient = 1.5
-                elif numElements in range(20,30):
-                    coeficient = 2
-                elif numElements in range(30,50):
-                    coeficient = 4
-                elif numElements >= 50:
-                    tempElemNo = numElements - 49
-                    coeficient = round(int(math.log(tempElemNo, 3)+4),1) # za broj elemenata iznad 50, vrijeme reakcije prelazi u log. krivulju.
+                coeficient = GetCoeficient(numElements)
                 print("Koeficijent slozenosti = " + str(coeficient))
-                t2 = t2 + (coeficient * 3)
+                t2 = t2 + (coeficient * 2)
                 print("Vrijeme dosezanja zadane razine = " + str(t2))
             t = t1 + t2 # ukupno vrijeme potrebno da se vrati na nultu razinu, te dosegne zadanu.
             print("Ukupno vrijeme reakcije = " + str(t))
         prevPageLevel = pageLevel # postavljanje inicijalne razine za slijedeci loop/case.
+
+
+
+def PlotSigmnond():
+    x = np.arange(0, 100, 0.1) # 0=min, 100=Max, 0.1=finesa
+    a = []
+    for item in x:
+        a.append( 1 + (4 / (1 + math.exp(-0.1*(item-50))))) # 4=L(max y os), 0.1=k(strmina), 50=x0(sredina krivulje na x osi)  
+                                                            # Jedinica na početku podiže krivulju na X osi jer rezultat množi osnovnu brzinu reakcije(multiplikator je u rasponu 1-5)
+    plt.plot(x,a)
+    plt.show()
+
+
+
+def PlotNormalDistribution():
+    mu, sigma = 50, 10 # 50=središte distribucije, 10=prva standardna devijacja(+,- 10 od središta = 68% vrijednosti), 1000 = br uzoraka
+    s = np.random.normal(mu, sigma, 1000)
+
+    # Create the bins and histogram
+    count, bins, ignored = plt.hist(s, 20, normed=True)
+
+    # Plot the distribution curve
+    plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) *
+        np.exp( - (bins - mu)**2 / (2 * sigma**2) ),       linewidth=3, color='y')
+    plt.show()
+
+
+def GetCoeficient(xVal):
+    yVal = 1 + (4 / (1 + math.exp(-0.1*(xVal-50))))
+    #plt.plot(xVal,yVal,'ro')
+    #plt.show()
+    return yVal
 
 
 Izbornik()
