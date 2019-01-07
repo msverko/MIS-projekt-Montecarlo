@@ -13,9 +13,10 @@ def Izbornik():
         if izbor == 1:
             GenerateData()
             PlotNormalDistribution(mu, sigma, ispunjenostArr)
-            PlotSigmnond()
         if izbor == 2:
             GetDataFromFile()
+        if izbor == 3:
+            PlotSigmnond()
         if izbor == 9:
             quit()
 
@@ -24,17 +25,17 @@ def GenerateData():
     global sigma
     global ispunjenost
     prevPageLevel = 0 #prethodna razina stranice
-    maxIspunjenost = 0 #najveci broj elemenata na stranici - inicijalno
+    maxIspunjenost = 0 #maksimalna ispunjenost stranice - inicijalno
     coeficient = 1 #koeficijent složenosti stranice na bazi broja elemenata (množi se sa baznim vremenom za navigaciju među stranicama razina >0)
-    numCases = int(input("Unesi zeljeni broj ponavljanja (odvojenih slucaja) \n"),10)
+    numCases = int(input("Unesi zeljeni broj ponavljanja (odvojenih kritičnih slucaja) \n"),10)
     #print(numSim)
     maxPageLevel = int(input("Unesi najvisu mogucu razinu stranice u navigaciji \n"),10)
     #print(pageLevel)
     while maxIspunjenost < 6:
-        maxIspunjenost = int(input("Unesi najvisi moguci broj grafickih elemenata po stranici (>5) \n"),10)
+        maxIspunjenost = int(input("Unesi najvisi moguci postotak ispunjenosti stranice (>5) \n"),10)
     #print(numElements)
     mu =  ((maxIspunjenost - 5)/2) + 5 # središte mormalne distribucije(pomiče se za min postotak popunjenosti stranice)
-    print("Središte normalne distribucije = " + str(mu))
+    print("Srediste normalne distribucije = " + str(mu))
     sigma = (maxIspunjenost - 5) * 0.1 # prva standardna devijacija (10% raspona uzorka)
     print("Prva standardna devijacija = " + str(sigma))
 
@@ -59,6 +60,7 @@ def GenerateData():
             t2 = 0 
             for tepmPageLevel in range(1, pageLevel+1): # za prelazak na svaku narednu razinu, iznova se racuna koeficijent, i vrijeme reakcije
                 ispunjenost = np.random.normal(mu, sigma, size=None)
+                ispunjenost = int(ispunjenost)
                 print("Broj elemenata na stranici = " + str(ispunjenost))
                 coeficient = GetCoeficient(ispunjenost) # izračun koeficijenta prema Sigmund krivulji
                 print("Koeficijent slozenosti = " + str(coeficient))
@@ -81,17 +83,27 @@ def PlotSigmnond(): # primjer Sigmund krivulje
     x = np.arange(0, 100, 0.1) # 0=min, 100=Max, 0.1=finesa
     a = []
     for item in x:
-        a.append( 1 + (4 / (1 + math.exp(-0.1*(item-50))))) # 4=L(max y os), 0.1=k(strmina), 50=x0(sredina krivulje na x osi)  
-                                                            # Jedinica na početku podiže krivulju na X osi jer rezultat množi osnovnu brzinu reakcije(multiplikator je u rasponu 1-5)
+        a.append( 1 + (4 / (1 + math.exp(-0.1*(item-50))))) 
+        # 4=L(max y os), 0.1=k(strmina), 50=x0(sredina krivulje na x osi)  
+        # Jedinica na početku podiže krivulju na X osi jer rezultat množi osnovnu brzinu reakcije(multiplikator je u rasponu 1-5)
     plt.plot(x,a)
+    plt.xlabel('Ispunjenost stranice[%]')
+    plt.ylabel('Koeficijent složenosti stranice')
+    plt.title('Multiplikator osnovne brzine navigacije na višu razinu')
+    plt.grid(True)
     plt.show()
 
 
 def PlotNormalDistribution(mu, sigma, IspunjenostArr): # Param: središte distribucije, prva standardna devijacja, uzorak
-    for item in IspunjenostArr:
+    #for item in IspunjenostArr:
         # Create the bins and histogram
-        count, bins, ignored = plt.hist(item, 20, density=True)
-        plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),       linewidth=3, color='r')
+    count, bins, ignored = plt.hist(IspunjenostArr, 20, density=True)
+    plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),       linewidth=3, color='y')
+    plt.xlabel('Ispunjenost stranice[%]')
+    plt.ylabel('Vjerojatnost')
+    plt.title('Histogram grafičke složenosti HMI stranice')
+    plt.text(mu, .03, "$\mu={0} , \sigma={1}$".format(mu,sigma), color="w", bbox=dict(facecolor='red', alpha=0.5))
+    plt.grid(True)
     plt.show()
 
 
